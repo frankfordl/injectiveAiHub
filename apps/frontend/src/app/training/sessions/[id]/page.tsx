@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader, Button, Chip, Progress, Avatar } from '@heroui/react';
 import { useToast } from '@/components/cotrain/ui/use-toast';
-import { useAptosContract } from '@/hooks/useAptosContract';
-import { useTransactionStatus } from '@/hooks/useTransactionStatus';
+import { useInjectiveContract } from '@/hooks/useInjectiveContract';
+import { useInjectiveTransactionStatus } from '@/hooks/useInjectiveTransactionStatus';
 import { useRealtimeSession } from '@/hooks/useRealtimeSession';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import {
@@ -85,6 +85,7 @@ export default function SessionDetails() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  // 更新：使用Injective hooks
   const { 
     registerForSession, 
     getSessionDetails, 
@@ -92,8 +93,8 @@ export default function SessionDetails() {
     account, 
     isLoading: contractLoading,
     completeSession
-  } = useAptosContract();
-  const { trackTransaction, pendingTransactions } = useTransactionStatus();
+  } = useInjectiveContract();
+  const { trackTransaction, pendingTransactions } = useInjectiveTransactionStatus();
   
   const sessionId = params.id as string;
   

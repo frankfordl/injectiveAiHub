@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Card, CardBody, CardHeader, Button, Chip, Progress } from '@heroui/react';
 import { useToast } from '@/components/cotrain/ui/use-toast';
-import { useAptosContract } from '@/hooks/useAptosContract';
-import { useTransactionStatus } from '@/hooks/useTransactionStatus';
+// 更新导入：使用Injective hooks
+import { useInjectiveContract } from '@/hooks/useInjectiveContract';
+import { useInjectiveTransactionStatus } from '@/hooks/useInjectiveTransactionStatus';
 import {
   Trophy,
   Wallet,
@@ -40,11 +41,12 @@ interface RewardsSummary {
 }
 
 // Mock data for demonstration
+// 更新mock数据中的金额单位注释
 const mockRewards: RewardData[] = [
   {
     sessionId: '0x1234567890abcdef',
     sessionName: 'Advanced NLP Model Training',
-    amount: 2500000000, // 25 APT in octas
+    amount: 25, // 25 INJ
     status: 'claimable',
     earnedAt: new Date(Date.now() - 86400000),
     score: 95,
@@ -52,7 +54,7 @@ const mockRewards: RewardData[] = [
   {
     sessionId: '0xfedcba0987654321',
     sessionName: 'Computer Vision Dataset Training',
-    amount: 1800000000, // 18 APT in octas
+    amount: 18, // 18 INJ
     status: 'claimable',
     earnedAt: new Date(Date.now() - 172800000),
     score: 87,
@@ -60,7 +62,7 @@ const mockRewards: RewardData[] = [
   {
     sessionId: '0x1111222233334444',
     sessionName: 'Reinforcement Learning Challenge',
-    amount: 4200000000, // 42 APT in octas
+    amount: 42, // 42 INJ
     status: 'claimed',
     earnedAt: new Date(Date.now() - 259200000),
     claimedAt: new Date(Date.now() - 86400000),
@@ -69,7 +71,7 @@ const mockRewards: RewardData[] = [
   {
     sessionId: '0x5555666677778888',
     sessionName: 'Natural Language Understanding',
-    amount: 3100000000, // 31 APT in octas
+    amount: 31, // 31 INJ
     status: 'claimed',
     earnedAt: new Date(Date.now() - 345600000),
     claimedAt: new Date(Date.now() - 259200000),
@@ -78,23 +80,24 @@ const mockRewards: RewardData[] = [
 ];
 
 const mockSummary: RewardsSummary = {
-  totalEarned: 11600000000, // 116 APT in octas
-  totalClaimed: 7300000000, // 73 APT in octas
-  totalClaimable: 4300000000, // 43 APT in octas
+  totalEarned: 116, // 116 INJ
+  totalClaimed: 73, // 73 INJ
+  totalClaimable: 43, // 43 INJ
   sessionsParticipated: 4,
   averageScore: 90.75,
 };
 
 export default function RewardsPage() {
   const { toast } = useToast();
+  // 更新：使用Injective hooks
   const { 
     connected, 
     account, 
     getAccountBalance, 
     getMyRewards,
     isLoading: contractLoading 
-  } = useAptosContract();
-  const { trackTransaction, pendingTransactions } = useTransactionStatus();
+  } = useInjectiveContract();
+  const { trackTransaction, pendingTransactions } = useInjectiveTransactionStatus();
 
   const [rewards, setRewards] = useState<RewardData[]>(mockRewards);
   const [summary, setSummary] = useState<RewardsSummary>(mockSummary);

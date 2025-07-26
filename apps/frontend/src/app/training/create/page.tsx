@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader, Button, Input, Textarea, Chip } from '@heroui/react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { useToast } from '@/components/cotrain/ui/use-toast';
-// 修复导入：使用正确的hook名称
-import { useEthereumContract } from '@/hooks/useEthereumContract';
-import { useTransactionStatus } from '@/hooks/useTransactionStatus';
+// 更新导入：使用Injective hooks
+import { useInjectiveContract } from '@/hooks/useInjectiveContract';
+import { useInjectiveTransactionStatus } from '@/hooks/useInjectiveTransactionStatus';
 import { useWallet } from '@/components/WalletProvider';
 import { Loader2, ArrowLeft, Plus, AlertCircle, CheckCircle, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -40,10 +40,9 @@ export default function CreateTrainingSession() {
   const { toast: toastHook } = useToast();
   const { isConnected: connected } = useWallet();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  // 修复：使用正确的hook名称
-  // 第42行：从 useEthereumContract hook 中解构获取 error
-  const { createTrainingSession, isLoading, error } = useEthereumContract();
-  const { trackTransaction, pendingTransactions } = useTransactionStatus();
+  // 更新：使用Injective hooks
+  const { createTrainingSession, isLoading, error } = useInjectiveContract();
+  const { trackTransaction, pendingTransactions } = useInjectiveTransactionStatus();
 
   // 添加 useRef 用于 textarea 自动调整高度
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -81,7 +80,7 @@ export default function CreateTrainingSession() {
       toast.error('描述必须至少10个字符');
     }
   
-    // 新增PyTorch代码验证
+    // PyTorch代码验证
     if (!formData.modelCode.trim()) {
       errors.modelCode = 'PyTorch model code is required';
       toast.error('PyTorch模型代码是必填项');
@@ -90,31 +89,22 @@ export default function CreateTrainingSession() {
       toast.error('请提供包含nn.Module的有效PyTorch模型代码');
     }
   
-    // 新增质押金额验证
+    // 更新质押金额验证为INJ
     if (formData.stakeAmount <= 0) {
       errors.stakeAmount = 'Stake amount must be greater than 0';
       toast.error('质押金额必须大于0');
-    } else if (formData.stakeAmount > 1000) {
-      errors.stakeAmount = 'Stake amount cannot exceed 1,000 APT';
-      toast.error('质押金额不能超过1,000 APT');
+    } else if (formData.stakeAmount > 10) {
+      errors.stakeAmount = 'Stake amount cannot exceed 10 INJ';
+      toast.error('质押金额不能超过10 INJ');
     }
   
-    // 修改奖励金额验证
+    // 更新奖励金额验证为INJ
     if (formData.rewardAmount <= 0) {
       errors.rewardAmount = 'Reward amount must be greater than 0';
       toast.error('奖励金额必须大于0');
-    } else if (formData.rewardAmount > 100) { // 修改为ETH的合理范围
-      errors.rewardAmount = 'Reward amount cannot exceed 100 ETH';
-      toast.error('奖励金额不能超过100 ETH');
-    }
-  
-    // 修改质押金额验证
-    if (formData.stakeAmount <= 0) {
-      errors.stakeAmount = 'Stake amount must be greater than 0';
-      toast.error('质押金额必须大于0');
-    } else if (formData.stakeAmount > 10) { // 修改为ETH的合理范围
-      errors.stakeAmount = 'Stake amount cannot exceed 10 ETH';
-      toast.error('质押金额不能超过10 ETH');
+    } else if (formData.rewardAmount > 100) {
+      errors.rewardAmount = 'Reward amount cannot exceed 100 INJ';
+      toast.error('奖励金额不能超过100 INJ');
     }
   
     if (formData.maxParticipants < 1) {
@@ -340,7 +330,7 @@ export default function CreateTrainingSession() {
 
               {/* Reward Amount */}
               <div className="space-y-2">
-                <label htmlFor="rewardAmount" className="text-sm font-medium">Reward Pool (ETH) *</label>
+                <label htmlFor="rewardAmount" className="text-sm font-medium">Reward Pool (INJ) *</label>
                 <Input
                   id="rewardAmount"
                   type="number"
@@ -353,7 +343,7 @@ export default function CreateTrainingSession() {
                   className={formErrors.rewardAmount ? 'border-red-500' : ''}
                 />
                 <p className="text-sm text-default-400">
-                  Total ETH to be distributed as rewards
+                  Total INJ to be distributed as rewards
                 </p>
                 {formErrors.rewardAmount && (
                   <p className="text-sm text-red-500">{formErrors.rewardAmount}</p>
@@ -366,10 +356,10 @@ export default function CreateTrainingSession() {
                 <Input
                   id="stakeAmount"
                   type="number"
-                  min="0.01" // 修改最小值为 0.01
+                  min="0.01"
                   max="10"
                   step="0.01"
-                  placeholder="0.01" // 修改占位符为 0.01
+                  placeholder="0.01"
                   value={formData.stakeAmount.toString()}
                   onChange={(e) => handleInputChange('stakeAmount', parseFloat(e.target.value) || 0)}
                   className={formErrors.stakeAmount ? 'border-red-500' : ''}
@@ -515,15 +505,15 @@ export default function CreateTrainingSession() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="font-medium text-warning-800">质押金额:</span>
-                        <p className="text-warning-700">{formData.stakeAmount} ETH</p>
+                        <p className="text-warning-700">{formData.stakeAmount} INJ</p>
                       </div>
                       <div>
                         <span className="font-medium text-warning-800">奖励池:</span>
-                        <p className="text-warning-700">{formData.rewardAmount} ETH</p>
+                        <p className="text-warning-700">{formData.rewardAmount} INJ</p>
                       </div>
                     </div>
                     <p className="text-warning-700 text-sm">
-                      您将质押 <strong>{formData.stakeAmount} ETH</strong> 来创建此算力池。
+                      您将质押 <strong>{formData.stakeAmount} INJ</strong> 来创建此算力池。
                       质押的代币将在会话完成后根据参与情况和训练质量返还。
                     </p>
                     <div className="flex items-start gap-2">
@@ -535,7 +525,7 @@ export default function CreateTrainingSession() {
                         className="mt-1"
                       />
                       <label htmlFor="confirmStake" className="text-sm text-warning-800 cursor-pointer">
-                        我确认质押 {formData.stakeAmount} inj 并了解相关风险。我理解质押代币的返还取决于训练会话的完成情况和参与者的贡献质量。
+                        我确认质押 {formData.stakeAmount} INJ 并了解相关风险。我理解质押代币的返还取决于训练会话的完成情况和参与者的贡献质量。
                       </label>
                     </div>
                   </div>
@@ -579,11 +569,11 @@ export default function CreateTrainingSession() {
               </div>
               <div>
                 <span className="font-medium">奖励池:</span>
-                <p className="text-default-400">{formData.rewardAmount} APT</p>
+                <p className="text-default-400">{formData.rewardAmount} INJ</p>
               </div>
               <div>
                 <span className="font-medium">质押金额:</span>
-                <p className="text-default-400">{formData.stakeAmount} APT</p>
+                <p className="text-default-400">{formData.stakeAmount} INJ</p>
               </div>
               <div>
                 <span className="font-medium">最大参与者:</span>
