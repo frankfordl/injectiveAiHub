@@ -4,7 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { WalletProvider } from '@/components/WalletProvider';
 import { Toaster } from 'react-hot-toast';
-import { ToastProvider } from '@/components/cotrain/ui/use-toast'; // 添加这行
+import { ToastProvider } from '@/components/cotrain/ui/use-toast';
 import { cn } from '@/lib/utils';
 import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google';
@@ -27,7 +27,7 @@ const fontSans = FontSans({
 export const metadata: Metadata = {
   title: 'CoTrain - Distributed AI Training System',
   description:
-    'CoTrain is a blockchain-based distributed AI training platform with Aptos wallet integration.',
+    'CoTrain is a blockchain-based distributed AI training platform with Injective network integration.',
 };
 
 export default function RootLayout({ children }: PropsWithChildren) {
@@ -51,13 +51,13 @@ export default function RootLayout({ children }: PropsWithChildren) {
                 <WalletProvider>
                   <AuthProvider>
                     <AppProvider>
-                      <ToastProvider> {/* 添加这行 */}
+                      <ToastProvider>
                         <div className='min-h-screen flex flex-col'>
                           <ConditionalNavigation />
                           <main className='flex-1'>{children}</main>
                         </div>
                         <Toaster />
-                      </ToastProvider> {/* 添加这行 */}
+                      </ToastProvider>
                     </AppProvider>
                   </AuthProvider>
                 </WalletProvider>

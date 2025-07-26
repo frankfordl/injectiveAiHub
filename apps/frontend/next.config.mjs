@@ -3,6 +3,11 @@ const isVercel = process.env.VERCEL === "1";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  experimental: {
+    serverComponentsExternalPackages: ['pg'],
+  },
   // Remove static export for Vercel deployment
   // output: "export", 
   reactStrictMode: false,
@@ -12,23 +17,10 @@ const nextConfig = {
   // basePath: isProd ? "/aptos-wallet-adapter" : "",
   webpack: (config) => {
     config.resolve.fallback = { "@solana/web3.js": false };
+    config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
   },
-  // Add Vercel-specific optimizations
-  images: {
-    unoptimized: false,
-  },
-  // Disable static optimization for error pages
-  experimental: {
-    optimizeCss: false,
-  },
-  serverExternalPackages: ['@aptos-labs/wallet-adapter-react'],
-  eslint: {
-    // Temporarily ignore ESLint errors during builds
-    ignoreDuringBuilds: true,
-  },
-  // Force dynamic rendering
-  trailingSlash: false,
+  serverExternalPackages: [],
 };
 
 export default nextConfig;
