@@ -55,6 +55,7 @@ export const RewardsDashboard: React.FC<RewardsDashboardProps> = ({
   limit = 10,
 }) => {
   const { account, connected } = useWallet();
+  // 移除 Aptos 钱包相关状态
   const [rewards, setRewards] = useState<RewardItem[]>([]);
   const [stats, setStats] = useState<RewardStats | null>(null);
   const [loading, setLoading] = useState(false);

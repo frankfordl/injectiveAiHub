@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useWallet } from '@aptos-labs/wallet-adapter-react';
+import { useWallet } from '@/components/WalletProvider';
 import { useWebSocket } from './useWebSocket';
 
 export interface BalanceData {
@@ -48,7 +48,7 @@ export const useBalance = (options: UseBalanceOptions = {}): UseBalanceReturn =>
     onError,
   } = options;
 
-  const { account, connected } = useWallet();
+  const { account, isConnected } = useWallet();
   const { connected: wsConnected } = useWebSocket();
   
   const [balance, setBalance] = useState<BalanceData | null>(null);
@@ -61,17 +61,17 @@ export const useBalance = (options: UseBalanceOptions = {}): UseBalanceReturn =>
 
   // Load cached balance
   const loadCachedBalance = useCallback(() => {
-    if (!account?.address) return null;
+    if (!account) return null;
     
     try {
-      const cached = localStorage.getItem(`${CACHE_KEY}_${account.address}`);
+      const cached = localStorage.getItem(`${CACHE_KEY}_${account}`);
       if (!cached) return null;
       
       const { data, timestamp } = JSON.parse(cached);
       const age = Date.now() - timestamp;
       
       if (age > CACHE_EXPIRY) {
-        localStorage.removeItem(`${CACHE_KEY}_${account.address}`);
+        localStorage.removeItem(`${CACHE_KEY}_${account}`);
         return null;
       }
       
@@ -84,7 +84,7 @@ export const useBalance = (options: UseBalanceOptions = {}): UseBalanceReturn =>
       console.warn('Failed to load cached balance:', error);
       return null;
     }
-  }, [account?.address, refreshInterval]);
+  }, [account, refreshInterval]);
 
   // Save balance to cache
   const saveBalanceToCache = useCallback((balanceData: BalanceData) => {
@@ -274,11 +274,11 @@ export const useBalance = (options: UseBalanceOptions = {}): UseBalanceReturn =>
   }, []);
 
   return {
-    balance: balance ? { ...balance, isStale } : null,
+    balance,
     loading,
     error,
     refresh,
-    isConnected: connected,
+    isConnected,
     isStale,
   };
 };

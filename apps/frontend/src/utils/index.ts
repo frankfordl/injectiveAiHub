@@ -40,3 +40,19 @@ export const isMainnet = (
 ): boolean => {
   return connected && networkName === Network.MAINNET;
 };
+
+// 如果需要保留一些通用工具函数，可以添加其他实用工具
+
+export const formatAddress = (address: string, length = 6) => {
+  if (!address) return '';
+  return `${address.slice(0, length)}...${address.slice(-length)}`;
+};
+
+export const formatBalance = (balance: number, decimals = 4) => {
+  return Number(balance).toFixed(decimals);
+};
+
+export const isValidAddress = (address: string) => {
+  // 以太坊地址验证
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+};

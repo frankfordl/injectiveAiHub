@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useWallet } from '@aptos-labs/wallet-adapter-react';
+import { useWallet } from '@/components/WalletProvider';
 import { Button, Card, CardBody, CardHeader } from '@heroui/react';
 import { WalletSelector } from '@/components/WalletSelector';
 import { Loader2, Wallet, Shield } from 'lucide-react';
@@ -17,7 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   fallback 
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { connected } = useWallet();
+  const { isConnected } = useWallet();
 
   // Show loading state
   if (isLoading) {
@@ -47,14 +47,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             </div>
             <h3 className="text-lg font-semibold">Authentication Required</h3>
             <p className="text-sm text-default-400">
-              {!connected 
-                ? "Please connect your Aptos wallet to access this page."
+              {!isConnected 
+                ? "Please connect your wallet to access this page."
                 : "Please sign in with your wallet to continue."
               }
             </p>
           </CardHeader>
           <CardBody className="space-y-4">
-            {!connected ? (
+            {!isConnected ? (
               <div className="flex justify-center">
                 <WalletSelector />
               </div>
