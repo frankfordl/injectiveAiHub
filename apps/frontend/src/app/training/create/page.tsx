@@ -7,7 +7,8 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure
 import { useToast } from '@/components/cotrain/ui/use-toast';
 // 修复导入：使用正确的hook名称
 import { useEthereumContract } from '@/hooks/useEthereumContract';
-import { useTransactionStatus } from '@/hooks/useTransactionStatus';
+// Fix: Change from useTransactionStatus to useInjectiveTransactionStatus
+import { useInjectiveTransactionStatus } from '@/hooks/useInjectiveTransactionStatus';
 import { useWallet } from '@/components/WalletProvider';
 import { Loader2, ArrowLeft, Plus, AlertCircle, CheckCircle, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -41,7 +42,8 @@ export default function CreateTrainingSession() {
   // 修复：使用正确的hook名称
   // 第42行：从 useEthereumContract hook 中解构获取 error
   const { createTrainingSession, isLoading, error } = useEthereumContract();
-  const { trackTransaction, pendingTransactions } = useTransactionStatus();
+  // Fix: Change from useTransactionStatus to useInjectiveTransactionStatus
+  const { trackTransaction, pendingTransactions } = useInjectiveTransactionStatus();
 
   // 添加 useRef 用于 textarea 自动调整高度
   const textareaRef = useRef<HTMLTextAreaElement>(null);
