@@ -1,0 +1,65 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/heroui/*": [
+        "./src/components/heroui/*"
+      ],
+      "@/components/ui/*": [
+        "./src/components/cotrain/ui/*"
+      ],
+      "@/components/ui-legacy/*": [
+        "./src/components/cotrain/ui-legacy/*"
+      ],
+      "@/types/heroui": [
+        "./src/types/heroui"
+      ],
+      "@/config/heroui-theme": [
+        "./src/config/heroui-theme"
+      ]
+    },
+    "target": "ES2017"
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/components/**/*.ts",
+    "src/components/**/*.tsx",
+    "src/components/ui/**/*.ts",
+    "src/components/ui/**/*.tsx",
+    "src/stores/**/*.ts",
+    "src/stores/**/*.tsx",
+    "src/stores/examples/**/*.ts",
+    "src/stores/examples/**/*.tsx",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
