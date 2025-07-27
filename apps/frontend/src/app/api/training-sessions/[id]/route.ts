@@ -19,10 +19,11 @@ const createConnection = async () => {
 // GET - Get individual training session by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sessionId = params.id;
+    const { id } = await params;
+    const sessionId = id;
     
     const conn = await createConnection();
     if (!conn) {
