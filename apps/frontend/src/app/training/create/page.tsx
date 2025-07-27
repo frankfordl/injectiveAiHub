@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader, Button, Input, Textarea, Chip } from '@heroui/react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { useToast } from '@/components/cotrain/ui/use-toast';
-// 更新导入：使用Injective hooks
-import { useInjectiveContract } from '@/hooks/useInjectiveContract';
-import { useInjectiveTransactionStatus } from '@/hooks/useInjectiveTransactionStatus';
+// 修复导入：使用正确的hook名称
+import { useEthereumContract } from '@/hooks/useEthereumContract';
+import { useTransactionStatus } from '@/hooks/useTransactionStatus';
 import { useWallet } from '@/components/WalletProvider';
 import { Loader2, ArrowLeft, Plus, AlertCircle, CheckCircle, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,21 +18,19 @@ import { v4 as uuidv4 } from 'uuid';
 interface SessionFormData {
   name: string;
   description: string;
-  rewardAmount: number;
   maxParticipants: number;
   duration: number;
-  modelCode: string; // 新增PyTorch代码字段
-  stakeAmount: number; // 新增质押金额字段
+  modelCode: string; // PyTorch代码字段
+  stakeAmount: number; // 质押金额字段，同时也是奖励池
 }
 
 interface SessionFormErrors {
   name?: string;
   description?: string;
-  rewardAmount?: string;
   maxParticipants?: string;
   duration?: string;
-  modelCode?: string; // 新增
-  stakeAmount?: string; // 新增
+  modelCode?: string;
+  stakeAmount?: string;
 }
 
 export default function CreateTrainingSession() {
@@ -40,9 +38,10 @@ export default function CreateTrainingSession() {
   const { toast: toastHook } = useToast();
   const { isConnected: connected } = useWallet();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  // 更新：使用Injective hooks
-  const { createTrainingSession, isLoading, error } = useInjectiveContract();
-  const { trackTransaction, pendingTransactions } = useInjectiveTransactionStatus();
+  // 修复：使用正确的hook名称
+  // 第42行：从 useEthereumContract hook 中解构获取 error
+  const { createTrainingSession, isLoading, error } = useEthereumContract();
+  const { trackTransaction, pendingTransactions } = useTransactionStatus();
 
   // 添加 useRef 用于 textarea 自动调整高度
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -50,7 +49,6 @@ export default function CreateTrainingSession() {
   const [formData, setFormData] = useState<SessionFormData>({
     name: '',
     description: '',
-    rewardAmount: 100,
     maxParticipants: 10,
     duration: 3600,
     modelCode: `import torch\nimport torch.nn as nn\nimport torch.nn.functional as F\n\nclass SimpleModel(nn.Module):\n    def __init__(self, input_size, hidden_size, output_size):\n        super(SimpleModel, self).__init__()\n        self.fc1 = nn.Linear(input_size, hidden_size)\n        self.fc2 = nn.Linear(hidden_size, output_size)\n        \n    def forward(self, x):\n        x = F.relu(self.fc1(x))\n        x = self.fc2(x)\n        return x\n\n# 模型实例化\nmodel = SimpleModel(784, 128, 10)`,
@@ -89,22 +87,16 @@ export default function CreateTrainingSession() {
       toast.error('请提供包含nn.Module的有效PyTorch模型代码');
     }
   
-    // 更新质押金额验证为INJ
+    // 质押金额验证（同时也是奖励池）
     if (formData.stakeAmount <= 0) {
       errors.stakeAmount = 'Stake amount must be greater than 0';
       toast.error('质押金额必须大于0');
-    } else if (formData.stakeAmount > 10) {
-      errors.stakeAmount = 'Stake amount cannot exceed 10 INJ';
-      toast.error('质押金额不能超过10 INJ');
-    }
-  
-    // 更新奖励金额验证为INJ
-    if (formData.rewardAmount <= 0) {
-      errors.rewardAmount = 'Reward amount must be greater than 0';
-      toast.error('奖励金额必须大于0');
-    } else if (formData.rewardAmount > 100) {
-      errors.rewardAmount = 'Reward amount cannot exceed 100 INJ';
-      toast.error('奖励金额不能超过100 INJ');
+    } else if (formData.stakeAmount < 0.01) { // 添加最小值检查
+      errors.stakeAmount = 'Stake amount must be at least 0.01 INJ';
+      toast.error('质押金额最少为0.01 INJ');
+    } else if (formData.stakeAmount > 1000) {
+      errors.stakeAmount = 'Stake amount cannot exceed 1,000 INJ';
+      toast.error('质押金额不能超过1,000 INJ');
     }
   
     if (formData.maxParticipants < 1) {
@@ -176,7 +168,7 @@ export default function CreateTrainingSession() {
         creator_address: '', // 从钱包获取地址
         model_code: formData.modelCode,
         max_participants: formData.maxParticipants,
-        reward_amount: formData.rewardAmount,
+        reward_amount: formData.stakeAmount, // 奖励池等于质押金额
         stake_amount: formData.stakeAmount,
         duration: formData.duration,
       };
@@ -215,7 +207,6 @@ export default function CreateTrainingSession() {
         toast.warning('Session saved but stake verification failed. You can retry verification later.');
       }
     } catch (err: any) {
-      toast.error(err.message || 'An unexpected error occurred.');
       toast.error(err.message || 'An unexpected error occurred.');
     }
   };
@@ -328,44 +319,22 @@ export default function CreateTrainingSession() {
                 )}
               </div>
 
-              {/* Reward Amount */}
+              {/* Stake Amount (也是奖励池) */}
               <div className="space-y-2">
-                <label htmlFor="rewardAmount" className="text-sm font-medium">Reward Pool (INJ) *</label>
-                <Input
-                  id="rewardAmount"
-                  type="number"
-                  min="0.01"
-                  max="100"
-                  step="0.01"
-                  placeholder="1.0"
-                  value={formData.rewardAmount.toString()}
-                  onChange={(e) => handleInputChange('rewardAmount', parseFloat(e.target.value) || 0)}
-                  className={formErrors.rewardAmount ? 'border-red-500' : ''}
-                />
-                <p className="text-sm text-default-400">
-                  Total INJ to be distributed as rewards
-                </p>
-                {formErrors.rewardAmount && (
-                  <p className="text-sm text-red-500">{formErrors.rewardAmount}</p>
-                )}
-              </div>
-
-              {/* Stake Amount */}
-              <div className="space-y-2">
-                <label htmlFor="stakeAmount" className="text-sm font-medium">质押金额 (INJ) *</label>
+                <label htmlFor="stakeAmount" className="text-sm font-medium">质押金额/奖励池 (INJ) *</label>
                 <Input
                   id="stakeAmount"
                   type="number"
-                  min="0.01"
-                  max="10"
-                  step="0.01"
-                  placeholder="0.01"
+                  min="0.01" // 修改最小值为 0.01
+                  max="1000"
+                  step="0.01" // 修改步长为 0.01，支持小数点
+                  placeholder="0.01" // 修改占位符为 0.01
                   value={formData.stakeAmount.toString()}
                   onChange={(e) => handleInputChange('stakeAmount', parseFloat(e.target.value) || 0)}
                   className={formErrors.stakeAmount ? 'border-red-500' : ''}
                 />
                 <p className="text-sm text-default-400">
-                  创建算力池需要质押的 INJ，用于确保训练质量（最小值：0.01 INJ）
+                  创建算力池需要质押的 INJ，同时也是参与者的奖励池总额（最小值：0.01 INJ）
                 </p>
                 {formErrors.stakeAmount && (
                   <p className="text-sm text-red-500">{formErrors.stakeAmount}</p>
@@ -482,18 +451,6 @@ export default function CreateTrainingSession() {
                 </Card>
               )}
 
-
-
-              {/* Error Display */}
-              {error && (
-                <Card className="border-danger bg-danger-50">
-                  <CardBody className="flex flex-row items-center gap-3">
-                    <AlertCircle className="h-4 w-4 text-danger" />
-                    <p className="text-danger-700">{error}</p>
-                  </CardBody>
-                </Card>
-              )}
-
               {/* Stake Confirmation */}
               <Card className="border-warning bg-warning-50">
                 <CardBody>
@@ -509,7 +466,7 @@ export default function CreateTrainingSession() {
                       </div>
                       <div>
                         <span className="font-medium text-warning-800">奖励池:</span>
-                        <p className="text-warning-700">{formData.rewardAmount} INJ</p>
+                        <p className="text-warning-700">{formData.stakeAmount} INJ</p>
                       </div>
                     </div>
                     <p className="text-warning-700 text-sm">
@@ -569,7 +526,7 @@ export default function CreateTrainingSession() {
               </div>
               <div>
                 <span className="font-medium">奖励池:</span>
-                <p className="text-default-400">{formData.rewardAmount} INJ</p>
+                <p className="text-default-400">{formData.stakeAmount} INJ</p>
               </div>
               <div>
                 <span className="font-medium">质押金额:</span>
